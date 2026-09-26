@@ -1,0 +1,12 @@
+import pandas as pd
+pd.set_option('display.width',250); pd.set_option('display.max_rows',500); pd.set_option('display.max_columns',50); pd.set_option('display.max_colwidth',60)
+df=pd.read_pickle('/work/all.pkl')
+b=df[df.st==8].copy()
+b['sig']=b['radiotap.dbm_antsignal'].str.split(',').str[0].astype(float)
+b['noise']=b['radiotap.dbm_antnoise'].str.split(',').str[0].astype(float)
+g=b.groupby(['sensor','wlan.bssid']).agg(n=('t','size'),ssid=('ssid_txt',lambda s:'|'.join(sorted(set(map(str,s))))),ch=('wlan.ds.current_channel',lambda s:'|'.join(sorted(set(map(str,s))))),freq=('radiotap.channel.freq',lambda s:'|'.join(sorted(set(map(str,s))))),bi=('wlan.fixed.beacon',lambda s:'|'.join(sorted(set(map(str,s))))),akm=('wlan.rsn.akms.type',lambda s:'|'.join(sorted(set(map(str,s))))),first=('rel','min'),last=('rel','max'),sig=('sig','mean'),noise=('noise','mean'))
+print(g)
+print(b['wlan.tag.number'].value_counts().head(20))
+print(b['wlan.tag.oui'].value_counts().head(20))
+print(b['wlan.tag.vendor.oui.type'].value_counts().head(20))
+print(b['radiotap.datarate'].value_counts())

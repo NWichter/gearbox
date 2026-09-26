@@ -1,0 +1,13 @@
+import pandas as pd, numpy as np
+pd.set_option('display.width',300); pd.set_option('display.max_rows',3000); pd.set_option('display.max_columns',60)
+e=pd.read_pickle('/work/ev2.pkl')
+e['ap_tx']=e['wlan.ta'].str.startswith('00:0b:86')
+print(e.groupby(['st','ap_tx']).size())
+print('eap code/type', e.groupby(['eap.code','eap.type','ap_tx'],dropna=False).size())
+print('eapol msgnr', e.groupby(['wlan_rsna_eapol.keydes.msgnr','ap_tx'],dropna=False).size())
+print('eapol.type', e['eapol.type'].value_counts(dropna=False))
+print('identities', e['eap.identity'].value_counts())
+print('status codes', e.groupby(['st','wlan.fixed.status_code']).size())
+print('reason codes', e.groupby(['st','wlan.fixed.reason_code','ap_tx']).size())
+print('action', e[e.st==13].groupby(['wlan.fixed.category_code','wlan.fixed.action_code','ap_tx']).size())
+print('auth alg', e[e.st==11].groupby(['wlan.fixed.auth.alg','wlan.fixed.auth_seq','ap_tx']).size())

@@ -1,0 +1,32 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "anthropic>=1.8.0",
+    "fastapi[standard]>=0.141.1",
+    "pandas>=3.0.6",
+    "psycopg[binary]>=3.3.6",
+    "pydantic-settings>=2.15.0",
+    "python-multipart>=0.0.32",
+    "sqlalchemy>=2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.9",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "tesla: runs the full pipeline on the Tesla captures (needs tshark and the real pcaps, about 2-3 min)",
+]
+addopts = "-m 'not tesla'"
+
+[tool.ruff.lint]
+# the classic ruff defaults, pinned: ruff 0.16 widened its default rule set
+select = ["E4", "E7", "E9", "F"]

@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gearbox dashboard target</title>
+<!-- Static visual target for the team (not production code). Numbers: live result of dataset
+     ff1d9f54dee9 on 26 Sep 2026 (11 incidents). Counts tagged [from API] are placeholders that
+     need a new API field. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090c; --panel:#0d1116; --panel2:#11161c; --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.14);
+  --ink:#eaeef2; --ink2:#c3cad1; --mute:#8b949c; --faint:#5b646c;
+  --red:#ff4d57; --amber:#ffb03f; --violet:#a78bfa; --green:#45e39b; --neutral:#8fa6c8;
+  --red-bg:rgba(255,77,87,.09); --amber-bg:rgba(255,176,63,.08); --violet-bg:rgba(167,139,250,.09); --neutral-bg:rgba(143,166,200,.07);
+  --sans:Inter,"Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",Consolas,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.45 var(--sans);-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.s{font-size:12px;color:var(--mute)} .xs{font-size:11px;color:var(--faint)}
+.red{color:var(--red)} .amber{color:var(--amber)} .violet{color:var(--violet)} .green{color:var(--green)} .neutral{color:var(--neutral)}
+a{color:inherit}
+.wrap{max-width:1920px;margin:0 auto;padding:18px 24px 40px}
+
+/* 1 · status line */
+.status{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:6px 0 16px;border-bottom:1px solid var(--line)}
+.status h1{margin:0;font:500 30px/1.15 var(--sans);letter-spacing:-.015em}
+.status h1 b{font-weight:600;color:var(--red)}
+.status h1 .sep{color:var(--faint);font-weight:400;margin:0 10px}
+.facts{display:flex;flex-wrap:wrap;gap:6px 18px;font:400 12px/1.4 var(--mono);color:var(--mute);margin-top:8px}
+.facts b{color:var(--ink2);font-weight:500}
+.brand{display:flex;align-items:center;gap:10px;font:600 15px/1 var(--sans);color:var(--ink2)}
+.brand i{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red)}
+.brand span{font:400 11px/1 var(--mono);color:var(--faint);letter-spacing:.06em;text-transform:uppercase}
+
+/* layout */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 620px;gap:20px;margin-top:18px;align-items:start}
+@media (max-width:1560px){.grid{grid-template-columns:minmax(0,1fr) 500px}}
+@media (max-width:1180px){.grid{grid-template-columns:1fr}}
+section{margin-bottom:20px}
+.h2{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 10px;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.h2 em{font-style:normal;text-transform:none;letter-spacing:0;color:var(--faint)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px}
+
+/* 2 · cause board */
+.causes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.causes{grid-template-columns:1fr}}
+.card{position:relative;padding:14px 16px 14px 18px;border-radius:8px;background:var(--panel);border:1px solid var(--line);cursor:pointer}
+.card::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:2px;background:var(--c)}
+.card.sel{background:var(--panel2);border-color:var(--line2);box-shadow:0 0 0 1px var(--c) inset}
+.card.r{--c:var(--red)} .card.a{--c:var(--amber)} .card.v{--c:var(--violet)} .card.n{--c:var(--neutral)}
+.card .top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:6px}
+.tag{display:inline-flex;align-items:center;gap:6px;font:500 11px/1 var(--mono);padding:4px 7px;border-radius:4px;letter-spacing:.03em;white-space:nowrap}
+.tag.r{color:var(--red);background:var(--red-bg)} .tag.a{color:var(--amber);background:var(--amber-bg)} .tag.v{color:var(--violet);background:var(--violet-bg)} .tag.n{color:var(--neutral);background:var(--neutral-bg)} .tag.g{color:var(--green);background:rgba(69,227,155,.08)}
+.card h3{margin:0 0 8px;font:500 17px/1.3 var(--sans);letter-spacing:-.005em}
+.kv{display:grid;grid-template-columns:78px 1fr;gap:3px 10px;font-size:13px}
+.kv dt{color:var(--faint);font:400 11px/1.9 var(--mono);text-transform:uppercase;letter-spacing:.05em}
+.kv dd{margin:0;color:var(--ink2)}
+.proof{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line2);font:400 11.5px/1.5 var(--mono);color:var(--mute)}
+.who{display:inline-flex;align-items:center;gap:6px;font-weight:500;color:var(--ink)}
+.who::before{content:"→";color:var(--faint)}
+.rows{margin-top:12px}
+.row{display:grid;grid-template-columns:14px 280px 1fr 190px;gap:12px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);font-size:13px}
+.row:last-child{border-bottom:0}
+.row .dot{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.row.r{--c:var(--red)} .row.a{--c:var(--amber)} .row.v{--c:var(--violet)} .row.n{--c:var(--neutral)}
+.row .p{font:400 11.5px/1.4 var(--mono);color:var(--mute)}
+.row .w{color:var(--ink2);text-align:right}
+@media (max-width:1400px){.row{grid-template-columns:14px 1fr 170px}.row .p{grid-column:2/4}}
+
+/* 3 · connection ladder */
+.ladder{padding:14px 16px 10px}
+.net{margin-bottom:16px}
+.net:last-child{margin-bottom:4px}
+.net .nh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;font-size:13px}
+.steps{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;align-items:start}
+.st{display:flex;flex-direction:column;gap:5px;min-width:0}
+.bar{position:relative;height:64px;display:flex;align-items:flex-end}
+.bar i{display:block;width:100%;border-radius:3px 3px 0 0;background:var(--neutral);opacity:.55}
+.bar i.none{background:transparent;border:1px dashed var(--line2);opacity:1;border-bottom:0}
+.bar i.skip{background:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 4px,transparent 4px 8px);opacity:1}
+.bar i.online{background:var(--green);opacity:.7}
+.st .n{font:500 13px/1 var(--mono);color:var(--ink)}
+.st .l{font:400 11px/1.25 var(--sans);color:var(--mute);min-height:28px}
+.drop{font:400 11px/1.3 var(--mono);padding:3px 5px;border-radius:3px;margin-top:2px}
+.drop.r{color:var(--red);background:var(--red-bg)} .drop.a{color:var(--amber);background:var(--amber-bg)}
+.loop{font:400 11px/1.3 var(--mono);color:var(--amber)}
+.ph{font:400 10px/1 var(--mono);color:var(--faint);border:1px solid var(--line2);border-radius:3px;padding:2px 4px;white-space:nowrap}
+
+/* 4 · what we checked */
+.matrix{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 18px;padding:8px 14px}
+@media (max-width:1400px){.matrix{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.chk{display:grid;grid-template-columns:18px 1fr auto;gap:8px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.chk b{font:500 13px/1 var(--mono);text-align:center}
+.chk .st2{font:400 11px/1 var(--mono);color:var(--faint);white-space:nowrap}
+.chk.found .st2{color:var(--ink2)}
+.chk .why{grid-column:2/4;font:400 11px/1.35 var(--mono);color:var(--faint)}
+
+/* 5 · where */
+.where{padding:12px 14px}
+.strip{display:grid;grid-template-columns:92px 1fr;gap:4px 10px;align-items:center}
+.strip .lab{font:400 11px/1 var(--mono);color:var(--mute);white-space:nowrap}
+.track{position:relative;height:16px;background:rgba(255,255,255,.03);border-radius:2px}
+.seg{position:absolute;top:3px;bottom:3px;border-radius:2px}
+.seg.a{background:var(--amber);opacity:.28} .seg.a2{background:var(--amber);opacity:.75;top:5px;bottom:5px}
+.seg.r{background:var(--red);opacity:.9} .seg.n{background:var(--neutral);width:3px !important;top:0;bottom:0;opacity:.9}
+.axis{display:flex;justify-content:space-between;font:400 10.5px/1 var(--mono);color:var(--faint);margin:6px 0 0 102px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--mute)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:14px;height:6px;border-radius:2px}
+.hall{margin-top:14px}
+.hall svg{width:100%;height:auto;display:block}
+
+/* 6 · detail pane */
+.detail{position:sticky;top:14px;padding:16px 18px}
+.detail h2{margin:6px 0 4px;font:500 21px/1.25 var(--sans);letter-spacing:-.01em}
+.detail .sub{font:400 12px/1.4 var(--mono);color:var(--mute)}
+.blk{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.blk h4{margin:0 0 7px;font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.blk p{margin:0;color:var(--ink2)}
+.blk ul{margin:0;padding-left:18px;color:var(--ink2)}
+.blk li{margin:3px 0}
+.blk li small{display:block;font:400 11.5px/1.45 var(--mono);color:var(--mute)}
+.act{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:6px;background:var(--red-bg);border:1px solid rgba(255,77,87,.25)}
+.act b{font-weight:600}
+.ev{width:100%;border-collapse:collapse;font:400 12px/1.4 var(--mono)}
+.ev td{padding:5px 6px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
+.ev td:first-child{color:var(--mute);white-space:nowrap}
+.flt{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:10px}
+.flt code{flex:1 1 100%;min-width:0;overflow-x:auto;white-space:nowrap;padding:8px 10px;border-radius:5px;background:#05070a;border:1px solid var(--line2);font:400 12px/1.4 var(--mono);color:var(--ink)}
+button{height:30px;font:500 12px/1 var(--sans);color:var(--ink);background:#1a2129;border:1px solid var(--line2);border-radius:5px;padding:0 12px;cursor:pointer;white-space:nowrap}
+button:hover{background:#222b35}
+.spark svg{width:100%;height:auto;display:block}
+.foot{margin-top:18px;font-size:11.5px;color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 1 · status line -->
+  <header class="status">
+    <div>
+      <div class="brand"><i></i>Gearbox <span>Tesla Airframe challenge · wireless on the line</span></div>
+      <h1 style="margin-top:12px"><b>2 problems can stop the line</b><span class="sep">·</span><b>4 tools affected</b></h1>
+      <div class="facts">
+        <span>capture <b>16 Sep 2026 12:24–12:54 UTC</b></span>
+        <span><b>8 sensors</b> (ch 36/40/44/48/149/153/157/161)</span>
+        <span><b>1,118,853</b> frames</span>
+        <span><b>29</b> AP radios on air (30 planned)</span>
+        <span><b>99</b> devices, <b>87</b> connected</span>
+        <span><b>11</b> incidents</span>
+      </div>
+    </div>
+    <div class="facts" style="justify-content:flex-end">
+      <span class="tag r">● line risk · TESLA-TOOLS</span>
+      <span class="tag a">● office network · TESLA-CORP</span>
+      <span class="tag v">● security</span>
+      <span class="tag n">● info / site</span>
+      <span class="tag g">● recovered / clean</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <main>
+      <!-- 2 · cause board -->
+      <section>
+        <div class="h2">Causes, ordered by line risk <em>one card per root cause · click for details</em></div>
+        <div class="causes">
+          <article class="card r sel" id="c-t03" data-sel="t03">
+            <div class="top"><span class="tag r">● CAN STOP THE LINE · TESLA-TOOLS</span><span class="xs mono">since 12:36:32</span></div>
+            <h3>Torque tool T-03 switched itself off</h3>
+            <dl class="kv">
+              <dt>where</dt><dd>AP 0f · ch 149 · heard by sensor05</dd>
+              <dt>scope</dt><dd>1 tool · silent 17:42 until capture end</dd>
+              <dt>who</dt><dd><span class="who">Line lead: swap the tool now</span></dd>
+            </dl>
+            <div class="proof">heartbeat ~30 s · missed 12:35:14 · deauth reason 3 from the tool 12:36:32 · no frame after</div>
+          </article>
+          <article class="card r" id="c-apoff">
+            <div class="top"><span class="tag r">● CAN STOP THE LINE · TESLA-TOOLS</span><span class="xs mono">whole capture</span></div>
+            <h3>3 tools cannot connect: their home AP is off</h3>
+            <dl class="kv">
+              <dt>where</dt><dd>radio AP 0d silent · 5 BSSIDs missing (ch 36, 40, 149, 153, 157)</dd>
+              <dt>scope</dt><dd>3 tools + 9 office devices (TESLA-CORP)</dd>
+              <dt>who</dt><dd><span class="who">Network team: switch AP 0d on, remove the single-AP binding</span></dd>
+            </dl>
+            <div class="proof">devices scan, 52–53 APs answer, no auth ever · no device uses a 2nd AP (87/87, 0 reassociations)</div>
+          </article>
+          <article class="card a" id="c-radius">
+            <div class="top"><span class="tag a">● OFFICE NETWORK · TESLA-CORP</span><span class="xs mono">whole capture</span></div>
+            <h3>Nobody can log in to TESLA-CORP: the login server does not answer</h3>
+            <dl class="kv">
+              <dt>where</dt><dd>26 APs · all 8 channels · all 8 sensors</dd>
+              <dt>scope</dt><dd>63 devices · not one login in the whole capture</dd>
+              <dt>who</dt><dd><span class="who">IT / identity team: RADIUS reachability, certificates</span></dd>
+            </dl>
+            <div class="proof">EAP-Request/Identity → response in 1 ms → AP asks again 30 s later · no EAP method · 0 EAP-Success · reason 23</div>
+          </article>
+          <article class="card a" id="c-kicks">
+            <div class="top"><span class="tag a">● OFFICE NETWORK · TESLA-CORP</span><span class="xs mono">since 12:30:53</span></div>
+            <h3>The controller kicks 18 devices on a timer</h3>
+            <dl class="kv">
+              <dt>where</dt><dd>18 APs · all 8 channels</dd>
+              <dt>scope</dt><dd>deauth to 11 devices every 11–15 s · disassoc to 7 every 25–30 s · address order</dd>
+              <dt>who</dt><dd><span class="who">Network team: check controller jobs / client policies</span></dd>
+            </dl>
+            <div class="proof">seq continues the AP's own counter (100 % of 1,477 frames) · signal = AP beacons ±0.1 dB → sent by the AP, not an attacker; 802.11w would not help</div>
+          </article>
+        </div>
+
+        <div class="panel rows">
+          <div class="row n"><i class="dot"></i><span>Controller stall</span><span class="p">12:28:07 · 2 pulses in 14 s · beacons up to 75 ms late on all 8 channels at once</span><span class="w">Network team · check controller CPU / logs</span></div>
+          <div class="row n"><i class="dot"></i><span>Sensor clocks off</span><span class="p">7 of 8 sensors · up to 1.22 s offset, 25 ppm drift · Gearbox aligns them via beacon TSF</span><span class="w">Sensor owner · no line impact</span></div>
+          <div class="row v"><i class="dot"></i><span>TESLA-TOOLS: one shared password, no 802.11w</span><span class="p">WPA2-PSK (AKM 2) · MFP capable = 0 · 27 tools</span><span class="w">Security team · plan PMF / per-device keys</span></div>
+          <div class="row n"><i class="dot"></i><span>Sign-off wave</span><span class="p">15 devices sign off in the first 5 s (12:24:13) · reason 3 / 8 / 36</span><span class="w">None · planned restart?</span></div>
+          <div class="row n"><i class="dot"></i><span>Join ramp</span><span class="p">79 devices join in 3 min · tools one every 2.0 s (12:26:44–12:27:40)</span><span class="w">None · confirm it was planned</span></div>
+        </div>
+      </section>
+
+      <!-- 3 · connection ladder -->
+      <section>
+        <div class="h2">Where devices stop <em>join sequence per network · drops coloured by cause · <span class="ph">[from API]</span> = needs a new API field</em></div>
+        <div class="panel ladder">
+          <div class="net">
+            <div class="nh"><span><b class="red">TESLA-TOOLS</b> <span class="s">· 27 tools · WPA2-PSK (no EAP steps)</span></span><span class="s">24 of 27 online at 12:36 · 23 at capture end</span></div>
+            <div class="steps">
+              <div class="st"><div class="bar"><i style="height:100%"></i></div><span class="n">27</span><span class="l">scan</span></div>
+              <div class="st"><div class="bar"><i style="height:89%"></i></div><span class="n">24</span><span class="l">authenticate</span><span class="drop r">−3 home AP off</span></div>
+              <div class="st"><div class="bar"><i style="height:89%"></i></div><span class="n">24</span><span class="l">associate</span></div>
+              <div class="st"><div class="bar"><i class="skip" style="height:89%"></i></div><span class="n s">n/a</span><span class="l">EAP identity</span></div>
+              <div class="st"><div class="bar"><i class="skip" style="height:89%"></i></div><span class="n s">n/a</span><span class="l">EAP method</span></div>
+              <div class="st"><div class="bar"><i style="height:89%"></i></div><span class="n">24 <span class="ph">[from API]</span></span><span class="l">4-way handshake</span></div>
+              <div class="st"><div class="bar"><i style="height:89%"></i></div><span class="n">24 <span class="ph">[from API]</span></span><span class="l">data / heartbeat</span></div>
+              <div class="st"><div class="bar"><i class="online" style="height:85%"></i></div><span class="n">23 <span class="ph">[from API]</span></span><span class="l">still online</span><span class="drop r">−1 T-03 switched off</span></div>
+            </div>
+          </div>
+          <div class="net">
+            <div class="nh"><span><b class="amber">TESLA-CORP</b> <span class="s">· 72 devices · WPA2-Enterprise (802.1X)</span></span><span class="s">0 of 72 online</span></div>
+            <div class="steps">
+              <div class="st"><div class="bar"><i style="height:100%"></i></div><span class="n">72</span><span class="l">scan</span></div>
+              <div class="st"><div class="bar"><i style="height:87.5%"></i></div><span class="n">63</span><span class="l">authenticate</span><span class="drop a">−9 home AP off</span></div>
+              <div class="st"><div class="bar"><i style="height:87.5%"></i></div><span class="n">63</span><span class="l">associate</span><span class="loop">↺ 18 kicked again and again</span></div>
+              <div class="st"><div class="bar"><i style="height:87.5%"></i></div><span class="n">63</span><span class="l">EAP identity</span></div>
+              <div class="st"><div class="bar"><i class="none" style="height:87.5%"></i></div><span class="n amber">0</span><span class="l">EAP method</span><span class="drop a">−63 login server</span></div>
+              <div class="st"><div class="bar"><i class="none" style="height:4%"></i></div><span class="n">0</span><span class="l">4-way handshake</span></div>
+              <div class="st"><div class="bar"><i class="none" style="height:4%"></i></div><span class="n">0</span><span class="l">data / heartbeat</span></div>
+              <div class="st"><div class="bar"><i class="none" style="height:4%"></i></div><span class="n">0</span><span class="l">still online</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 · what we checked -->
+      <section>
+        <div class="h2">What we checked <em>17 fault classes · found = links to the card · clean = tested, nothing found</em></div>
+        <div class="panel matrix">
+          <div class="chk found"><b class="amber">✓</b><a href="#c-radius">Login server (RADIUS)</a><span class="st2">found</span></div>
+          <div class="chk found"><b class="red">✓</b><a href="#c-apoff">Home AP off</a><span class="st2">found</span></div>
+          <div class="chk found"><b class="amber">✓</b><a href="#c-kicks">Controller kicks</a><span class="st2">found</span></div>
+          <div class="chk found"><b class="red">✓</b><a href="#c-t03">Device gone</a><span class="st2">found</span></div>
+          <div class="chk found"><b class="neutral">✓</b><span>Controller stall</span><span class="st2">found</span></div>
+          <div class="chk found"><b class="red">✓</b><a href="#c-apoff">AP silent</a><span class="st2">found (AP 0d)</span></div>
+          <div class="chk found"><b class="neutral">✓</b><span>Sensor clock drift</span><span class="st2">found</span></div>
+          <div class="chk found"><b class="violet">✓</b><span>Security config</span><span class="st2">found</span></div>
+          <div class="chk"><b class="green">○</b><span>Handshake break</span><span class="st2">clean</span><span class="why">no 4-way handshake starts and stops half-way</span></div>
+          <div class="chk"><b class="green">○</b><span>Association rejected</span><span class="st2">clean</span><span class="why">no association answered with a reject status</span></div>
+          <div class="chk"><b class="green">○</b><span>Roaming ping-pong</span><span class="st2">clean</span><span class="why">0 reassociations</span></div>
+          <div class="chk"><b class="green">○</b><span>Sensor blind spot</span><span class="st2">clean</span><span class="why">every sensor hears its channel's beacons</span></div>
+          <div class="chk"><b class="green">○</b><span>Congestion</span><span class="st2">clean</span><span class="why">78 frames/s per sensor, no retry rise</span></div>
+          <div class="chk"><b class="green">○</b><span>Non-Wi-Fi interference</span><span class="st2">clean</span><span class="why">noise floor flat −95…−97 dBm</span></div>
+          <div class="chk"><b class="green">○</b><span>Deauth flood / spoofing</span><span class="st2">clean</span><span class="why">kicks come from the APs themselves</span></div>
+          <div class="chk"><b class="green">○</b><span>Evil twin</span><span class="st2">clean</span><span class="why">no SSID on a foreign BSSID</span></div>
+          <div class="chk"><b class="green">○</b><span>Short-lived network</span><span class="st2">clean</span><span class="why">no network appears and vanishes</span></div>
+        </div>
+      </section>
+    </main>
+
+    <aside>
+      <!-- 6 · detail pane (T-03 open) -->
+      <section class="panel detail" id="detail">
+        <div class="top" style="display:flex;justify-content:space-between;align-items:center">
+          <span class="tag r">● CAN STOP THE LINE · TESLA-TOOLS</span><span class="xs mono">incident 6 of 11 · confidence medium (1 sensor)</span>
+        </div>
+        <h2>Torque tool T-03 switched itself off</h2>
+        <div class="sub">T-03 · b8:27:eb:00:00:03 (Raspberry Pi) · orderly sign-off, no return</div>
+
+        <div class="blk spark" aria-label="T-03 heartbeat 12:30 to 12:40">
+          <svg viewBox="0 0 560 64" role="img">
+            <line x1="0" y1="40" x2="560" y2="40" stroke="rgba(255,255,255,.12)"/>
+            <g stroke="#c3cad1" stroke-width="2" stroke-linecap="round">
+              <line x1="20" y1="40" x2="20" y2="14"/><line x1="48" y1="40" x2="48" y2="14"/><line x1="76" y1="40" x2="76" y2="14"/><line x1="104" y1="40" x2="104" y2="14"/>
+              <line x1="132" y1="40" x2="132" y2="14"/><line x1="160" y1="40" x2="160" y2="14"/><line x1="188" y1="40" x2="188" y2="14"/><line x1="216" y1="40" x2="216" y2="14"/>
+              <line x1="244" y1="40" x2="244" y2="14"/><line x1="272" y1="40" x2="272" y2="14"/><line x1="328" y1="40" x2="328" y2="14"/><line x1="356" y1="40" x2="356" y2="14"/>
+            </g>
+            <line x1="300" y1="40" x2="300" y2="14" stroke="#ff4d57" stroke-width="2" stroke-dasharray="3 3"/>
+            <line x1="373" y1="46" x2="373" y2="8" stroke="#ff4d57" stroke-width="2"/>
+            <line x1="373" y1="40" x2="560" y2="40" stroke="#ff4d57" stroke-width="2"/>
+            <text x="300" y="60" fill="#ff4d57" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">missed 12:35:14</text>
+            <text x="378" y="12" fill="#ff4d57" font-family="JetBrains Mono,monospace" font-size="10">sign-off 12:36:32 · reason 3</text>
+            <text x="0" y="60" fill="#5b646c" font-family="JetBrains Mono,monospace" font-size="10">12:30</text>
+            <text x="560" y="60" fill="#5b646c" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="end">silent until 12:54 →</text>
+          </svg>
+        </div>
+
+        <div class="blk"><h4>Cause</h4><p>The tool itself signed off (deauthentication, reason 3 "station is leaving") and never came back: it was switched off, restarted or ran out of battery. The network is fine.</p></div>
+        <div class="blk"><h4>Where</h4><p>TESLA-TOOLS · <b>AP 0f</b> (ch 149) · heard by <b>sensor05</b> · on the hall map near sensor 05 <span class="xs mono">bssid 00:0b:86:0f:00:01</span></p></div>
+        <div class="blk"><h4>Since when</h4><p><span class="mono">12:36:32 UTC</span> · silent for <span class="mono">17:42</span> until capture end · last missed check-in <span class="mono">12:35:14</span></p></div>
+        <div class="blk"><h4>Who acts · next step</h4>
+          <div class="act"><span class="red">●</span><div><b>Line lead: swap T-03 for a spare now.</b><br><span class="s">Then check battery / power of T-03. Network team: nothing to do.</span></div></div>
+        </div>
+        <div class="blk"><h4>Why we are sure</h4>
+          <ul>
+            <li>Heartbeat every ~30 s until 12:34:44, then one missing.<small>null data from T-03 · sensor05</small></li>
+            <li>The sign-off comes from the tool, not from the AP.<small>deauth, TA = b8:27:eb:00:00:03, reason 3 · sensor05 #64667</small></li>
+            <li>After it: no frame from T-03 for 17:42, while AP 0f keeps beaconing.<small>no probe, no auth, no data until 12:54:14</small></li>
+          </ul>
+        </div>
+        <div class="blk"><h4>What we ruled out</h4>
+          <ul>
+            <li>AP down <span class="s">(AP 0f beacons all 30 min)</span></li>
+            <li>Kicked by the controller <span class="s">(no deauth / disassoc from AP 0f to T-03)</span></li>
+            <li>Radio interference <span class="s">(noise floor flat on ch 149)</span></li>
+            <li>Login problem <span class="s">(TESLA-TOOLS uses PSK; T-03 had joined)</span></li>
+          </ul>
+        </div>
+        <div class="blk"><h4>Evidence frames</h4>
+          <table class="ev">
+            <tr><td>sensor05 #13635</td><td>association request T-03 → AP 0f</td></tr>
+            <tr><td>sensor05 #64667</td><td>deauth reason 3, T-03 → AP 0f · −85 dBm · 12:36:32</td></tr>
+            <tr><td>sensor05 #64668</td><td>ACK from AP 0f</td></tr>
+          </table>
+          <div class="flt"><code id="flt">wlan.addr == b8:27:eb:00:00:03 &amp;&amp; wlan.fc.type_subtype == 0x0c</code><button id="copy">Copy Wireshark filter</button></div>
+        </div>
+      </section>
+
+      <!-- 5 · where -->
+      <section>
+        <div class="h2" style="margin-top:20px">Where · when <em>8 channels, 12:24–12:54 UTC</em></div>
+        <div class="panel where">
+          <div class="strip" id="strip"></div>
+          <div class="axis"><span>12:24</span><span>12:30</span><span>12:36</span><span>12:42</span><span>12:48</span><span>12:54</span></div>
+          <div class="legend">
+            <span><i style="background:var(--red)"></i>T-03 silent / tools AP off</span>
+            <span><i style="background:var(--amber);opacity:.35"></i>login server (all CORP)</span>
+            <span><i style="background:var(--amber)"></i>kick campaign</span>
+            <span><i style="background:var(--neutral);width:3px"></i>controller stall</span>
+          </div>
+          <div class="hall">
+            <svg viewBox="0 0 580 270" role="img" aria-label="Schematic hall with 8 sensors">
+              <rect x="6" y="6" width="568" height="258" rx="6" fill="none" stroke="rgba(255,255,255,.14)"/>
+              <text x="16" y="24" fill="#5b646c" font-family="JetBrains Mono,monospace" font-size="10">SCHEMATIC · not a floor plan · devices placed "near sensor N"</text>
+              <g font-family="JetBrains Mono,monospace" font-size="10" fill="#8b949c" text-anchor="middle" id="sensors"></g>
+            </svg>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+  <p class="foot">Gearbox dashboard target · static mockup for the team · numbers from the live result of 26 Sep 2026 (dataset ff1d9f54dee9, 11 incidents) · counts marked [from API] are placeholders.</p>
+</div>
+
+<script>
+// channel strip: 8 sensors, one per channel; segments in minutes after 12:24 (30 min)
+const CH = [36, 40, 44, 48, 149, 153, 157, 161];
+const M = 30, pct = m => (m / M * 100).toFixed(2) + '%';
+const strip = document.getElementById('strip');
+CH.forEach((ch, i) => {
+  const segs = [['a', 0.2, 29.9, 'Login server does not answer: whole capture'], ['a2', 6.7, 30, 'Kick campaign from 12:30:53'], ['n', 3.9, 0, 'Controller stall 12:28:07']];
+  if (ch === 149) segs.push(['r', 12.4, 30, 'T-03 silent since 12:36:32 (AP 0f)']);
+  if ([36, 149].includes(ch)) segs.push(['r', 0, 0.9, 'TESLA-TOOLS BSSID missing on this channel (home AP off)']);
+  const lab = document.createElement('span'); lab.className = 'lab'; lab.textContent = `s0${i + 1} · ch ${ch}`;
+  const tr = document.createElement('div'); tr.className = 'track';
+  segs.forEach(([c, a, b, t]) => { const s = document.createElement('i'); s.className = 'seg ' + c; s.style.left = pct(a); s.style.width = pct(Math.max(b - a, 0)); s.title = t; tr.appendChild(s); });
+  strip.append(lab, tr);
+});
+// schematic hall: 8 sensors in two rows; T-03 near sensor 05
+const g = document.getElementById('sensors'), NS = 'http://www.w3.org/2000/svg';
+CH.forEach((ch, i) => {
+  const x = 90 + (i % 4) * 133, y = i < 4 ? 90 : 185, hot = i === 4;
+  const c = document.createElementNS(NS, 'circle'); c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', hot ? 34 : 30);
+  c.setAttribute('fill', hot ? 'rgba(255,77,87,.10)' : 'rgba(143,166,200,.06)'); c.setAttribute('stroke', hot ? '#ff4d57' : 'rgba(143,166,200,.35)'); g.appendChild(c);
+  const d = document.createElementNS(NS, 'circle'); d.setAttribute('cx', x); d.setAttribute('cy', y); d.setAttribute('r', 3.5); d.setAttribute('fill', '#8fa6c8'); g.appendChild(d);
+  const t = document.createElementNS(NS, 'text'); t.setAttribute('x', x); t.setAttribute('y', y + 48); t.textContent = `S0${i + 1} · ch ${ch}`; g.appendChild(t);
+  if (hot) { const l = document.createElementNS(NS, 'text'); l.setAttribute('x', x); l.setAttribute('y', y + 64); l.setAttribute('fill', '#ff4d57'); l.textContent = 'T-03 near sensor 05'; g.appendChild(l); }
+});
+// copy the Wireshark filter
+document.getElementById('copy').addEventListener('click', e => {
+  navigator.clipboard?.writeText(document.getElementById('flt').textContent).then(() => { e.target.textContent = 'Copied'; setTimeout(() => e.target.textContent = 'Copy Wireshark filter', 1400); });
+});
+// selecting a card highlights it (the detail pane of this mockup shows T-03 only)
+document.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => { document.querySelectorAll('.card').forEach(x => x.classList.toggle('sel', x === c)); }));
+</script>
+</body>
+</html>

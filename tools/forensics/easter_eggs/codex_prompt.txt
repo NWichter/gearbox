@@ -1,0 +1,18 @@
+You are hunting for EASTER EGGS hidden by Tesla engineers in 8 wireless captures for a hackathon challenge ("Airframe"). Tesla said: "There are also some Easter eggs hidden in the captures." Find ALL of them. Be thorough and skeptical; list each with hard evidence (file, frame number or byte offset, field, raw value, decoded meaning).
+
+Data: ./sensor01.pcap ... ./sensor08.pcap (classic pcap, radiotap + 802.11, header-only: 802.11 management/control and 802.1X/EAPOL, payloads truncated). One sensor per 5 GHz channel: 36,40,44,48,149,153,157,161. 30 minutes, 16 Sep 2026 12:24-12:54 UTC, ~1.12 M frames. You have no tshark; parse the pcap yourself (Python stdlib struct is fine; scapy/dpkt only if already installed). Do not modify files. Write scratch files only under your working directory if the sandbox allows, else keep in memory.
+
+Already known (verify, and do not stop here): FT R0KH-ID "apNN.airframe.lab" in association responses; mobility domain 0xB2A1; TSF equals Unix epoch in microseconds; vanity MAC blocks 3c:58:c2:00:00:01-23 (Intel, EAP identities corpNN), f0:18:98:00:00:01-25 (Apple, phoneNN), b8:27:eb:00:00:01-1b (Raspberry Pi); AP BSSIDs 00:0b:86:NN:00:0x, radio 0d missing; 25 randomized MACs that only send multicast; clients join exactly 2.0 s apart; sensor clock offsets/drifts in whole ppm (+18,-25,+12,-9,+22,-14,+7 relative to sensor01); deauth campaign periods 11.004/12.004/.../15.003 s; SSIDs TESLA-CORP and TESLA-TOOLS.
+
+Look everywhere, for example:
+- every printable string anywhere in the files (>=4 chars), with counts; strings that appear only a few times are prime suspects
+- all information elements in beacons, probe requests/responses, (re)assoc req/resp, action frames: SSIDs (incl. directed probe SSIDs), vendor-specific IEs (OUI + payload as ASCII/hex), country, RSN, FT, WPS/P2P names, interworking, extended capabilities oddities, unusual element IDs
+- EAP identities and any EAP/EAPOL fields (key nonces, replay counters, key data) that look non-random or ASCII
+- MAC addresses (all addresses in all frames) spelling hex words or sequences, locally administered bits, the 25 randomized MACs, any MAC seen only a few times
+- numeric fields: sequence numbers, AIDs, listen intervals, beacon intervals, capability bits, status/reason codes (rare values), durations, TSF values, timestamps that decode to dates/words, RSSI/noise/rate patterns, retry-flag patterns
+- timing: inter-frame gaps or periods that encode something (Morse, binary, ASCII), per-client periods, the deauth periods, join order
+- anything per sensor that differs from the others (e.g. one sensor with an odd frame), frames that appear only once, pcap/radiotap header oddities, the pcap global header, snaplen, link type, padding bytes
+- the missing radio 0d and missing SSIDs: any pattern in which ones are missing
+- decode candidate numbers as ASCII, dates, hex words, coordinates (e.g. lat/long of Giga Berlin/Austin/Fremont), Tesla references (model names S3XY, 1337, 42, 0xB2A1 etc.)
+
+Output: a ranked list "CONFIRMED easter egg" / "LIKELY" / "REJECTED (looks like generator artefact)" with evidence and how you decoded it, then a short note on what you checked and found nothing. Be concrete.

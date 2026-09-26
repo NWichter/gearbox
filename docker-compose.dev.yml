@@ -1,0 +1,12 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: gearbox
+      POSTGRES_PASSWORD: gearbox
+      POSTGRES_DB: gearbox
+    ports: ["5433:5432"]
+    volumes: [db:/var/lib/postgresql]
+
+volumes:
+  db:

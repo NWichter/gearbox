@@ -1,0 +1,19 @@
+# Hackathon: alles Interne bleibt draussen - Juroren sehen dieses Repo
+internal/
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+.next/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+mobile/build/
+mobile/.dart_tool/
+backend/data/uploads/
+
+# Tesla captures are not published
+data/**/*.pcap
+data/**/*.pcap.gz
